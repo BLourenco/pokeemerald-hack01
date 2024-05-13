@@ -28,6 +28,7 @@
 #include "pokedex.h"
 #include "pokemon_icon.h"
 #include "pokemon_summary_screen.h"
+#include "pokemon_summary_screen_new.h"
 #include "pokemon_storage_system.h"
 #include "random.h"
 #include "save.h"
@@ -1548,9 +1549,15 @@ static void CB_ShowTradeMonSummaryScreen(void)
     if (!gPaletteFade.active)
     {
         if (sTradeMenu->cursorPosition < PARTY_SIZE)
-            ShowPokemonSummaryScreen(SUMMARY_MODE_LOCK_MOVES, gPlayerParty, sTradeMenu->cursorPosition, sTradeMenu->partyCounts[TRADE_PLAYER] - 1, CB2_ReturnToTradeMenu);
+            if (NEW_SUMMARY_SCREEN)
+                ShowPokemonSummaryScreen_New(SUMMARY_MODE_LOCK_MOVES, gPlayerParty, sTradeMenu->cursorPosition, sTradeMenu->partyCounts[TRADE_PLAYER] - 1, CB2_ReturnToTradeMenu);
+            else
+                ShowPokemonSummaryScreen(SUMMARY_MODE_LOCK_MOVES, gPlayerParty, sTradeMenu->cursorPosition, sTradeMenu->partyCounts[TRADE_PLAYER] - 1, CB2_ReturnToTradeMenu);
         else
-            ShowPokemonSummaryScreen(SUMMARY_MODE_LOCK_MOVES, gEnemyParty, sTradeMenu->cursorPosition - PARTY_SIZE, sTradeMenu->partyCounts[TRADE_PARTNER] - 1, CB2_ReturnToTradeMenu);
+            if (NEW_SUMMARY_SCREEN)
+                ShowPokemonSummaryScreen_New(SUMMARY_MODE_LOCK_MOVES, gEnemyParty, sTradeMenu->cursorPosition - PARTY_SIZE, sTradeMenu->partyCounts[TRADE_PARTNER] - 1, CB2_ReturnToTradeMenu);
+            else
+                ShowPokemonSummaryScreen(SUMMARY_MODE_LOCK_MOVES, gEnemyParty, sTradeMenu->cursorPosition - PARTY_SIZE, sTradeMenu->partyCounts[TRADE_PARTNER] - 1, CB2_ReturnToTradeMenu);
         FreeAllWindowBuffers();
     }
 }

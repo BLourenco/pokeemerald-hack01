@@ -26,6 +26,7 @@
 #include "pokemon.h"
 #include "pokemon_icon.h"
 #include "pokemon_summary_screen.h"
+#include "pokemon_summary_screen_new.h"
 #include "pokemon_storage_system.h"
 #include "script.h"
 #include "sound.h"
@@ -3775,7 +3776,10 @@ static void Task_ChangeScreen(u8 taskId)
         if (mode == SUMMARY_MODE_NORMAL && boxMons == &sSavedMovingMon.box)
             ShowPokemonSummaryScreenHandleDeoxys(mode, boxMons, monIndex, maxMonIndex, CB2_ReturnToPokeStorage);
         else
-            ShowPokemonSummaryScreen(mode, boxMons, monIndex, maxMonIndex, CB2_ReturnToPokeStorage);
+            if (NEW_SUMMARY_SCREEN)
+                ShowPokemonSummaryScreen_New(mode, boxMons, monIndex, maxMonIndex, CB2_ReturnToPokeStorage);
+            else
+                ShowPokemonSummaryScreen(mode, boxMons, monIndex, maxMonIndex, CB2_ReturnToPokeStorage);
         break;
     case SCREEN_CHANGE_NAME_BOX:
         FreePokeStorageData();

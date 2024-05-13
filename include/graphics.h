@@ -1981,6 +1981,18 @@ extern const u32 gSummaryMoveSelect_Pal[];
 extern const u32 gStatusGfx_Icons[];
 extern const u32 gStatusPal_Icons[];
 
+extern const u32 gNewSummaryScreen_Gfx[];
+extern const u32 gNewSummaryScreen_Pal[];
+extern const u32 gNewSummaryPage_Info_Tilemap[];
+extern const u32 gNewSummaryPage_InfoEgg_Tilemap[];
+extern const u32 gNewSummaryPage_Skills_Tilemap[];
+extern const u32 gNewSummaryPage_BattleMoves_Tilemap[];
+extern const u32 gNewSummaryPage_ContestMoves_Tilemap[];
+
+extern const u16 gNewSummaryScreen_MoveEffect_Battle_Tilemap[];
+extern const u16 gNewSummaryScreen_MoveEffect_Contest_Tilemap[];
+extern const u16 gNewSummaryScreen_MoveEffect_Cancel_Tilemap[];
+
 extern const u32 gShopMenu_Gfx[];
 extern const u32 gShopMenu_Tilemap[];
 extern const u32 gShopMenu_Pal[];
