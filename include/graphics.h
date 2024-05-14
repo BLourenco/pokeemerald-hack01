@@ -1983,6 +1983,8 @@ extern const u32 gStatusPal_Icons[];
 
 extern const u32 gNewSummaryScreen_Gfx[];
 extern const u32 gNewSummaryScreen_Pal[];
+extern const u32 gNewSummaryPage_BG_Tilemap[];
+extern const u32 gNewSummaryPage_Header_Side_Tilemap[];
 extern const u32 gNewSummaryPage_Info_Tilemap[];
 extern const u32 gNewSummaryPage_InfoEgg_Tilemap[];
 extern const u32 gNewSummaryPage_Skills_Tilemap[];
