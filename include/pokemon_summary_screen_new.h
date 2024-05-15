@@ -5,6 +5,13 @@
 
 #define NEW_SUMMARY_SCREEN  TRUE
 
+// Controls the speed of the page scrolling out and scrolling in.
+// In vanilla, this was 32, but only had 1 page either scrolling in
+// or scrolling out. My new version has the current page scroll out,
+// and the new page scroll in, so I've doubled it to keep the same
+// overall speed.
+#define PAGE_SCROLL_SPEED 64
+
 void ShowPokemonSummaryScreen_New(u8 mode, void *mons, u8 monIndex, u8 maxMonIndex, void (*callback)(void));
 void ShowSelectMovePokemonSummaryScreen_New(struct Pokemon *mons, u8 monIndex, u8 maxMonIndex, void (*callback)(void), u16 newMove);
 void ShowPokemonSummaryScreenHandleDeoxys_New(u8 mode, struct BoxPokemon *mons, u8 monIndex, u8 maxMonIndex, void (*callback)(void));
