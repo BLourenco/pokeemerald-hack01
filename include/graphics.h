@@ -1995,6 +1995,12 @@ extern const u16 gNewSummaryScreen_MoveEffect_Battle_Tilemap[];
 extern const u16 gNewSummaryScreen_MoveEffect_Contest_Tilemap[];
 extern const u16 gNewSummaryScreen_MoveEffect_Cancel_Tilemap[];
 
+extern const u32 gNewSummaryScreen_InfoTab_Gfx[];
+extern const u32 gNewSummaryScreen_StatsTab_Gfx[];
+extern const u32 gNewSummaryScreen_BattleTab_Gfx[];
+extern const u32 gNewSummaryScreen_ContestTab_Gfx[];
+extern const u32 gNewSummaryScreen_Tab_Pal[];
+
 extern const u32 gShopMenu_Gfx[];
 extern const u32 gShopMenu_Tilemap[];
 extern const u32 gShopMenu_Pal[];

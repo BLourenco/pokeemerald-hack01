@@ -1648,6 +1648,12 @@ const u16 gNewSummaryScreen_MoveEffect_Battle_Tilemap[] = INCBIN_U16("graphics/s
 const u16 gNewSummaryScreen_MoveEffect_Contest_Tilemap[] = INCBIN_U16("graphics/summary_screen_new/pss-contest-detail.bin.lz");
 //const u16 gNewSummaryScreen_MoveEffect_Cancel_Tilemap[];
 
+const u32 gNewSummaryScreen_InfoTab_Gfx[] = INCBIN_U32("graphics/summary_screen_new/tabInfo.4bpp.lz");
+const u32 gNewSummaryScreen_StatsTab_Gfx[] = INCBIN_U32("graphics/summary_screen_new/tabStats.4bpp.lz");
+const u32 gNewSummaryScreen_BattleTab_Gfx[] = INCBIN_U32("graphics/summary_screen_new/tabBattle.4bpp.lz");
+const u32 gNewSummaryScreen_ContestTab_Gfx[] = INCBIN_U32("graphics/summary_screen_new/tabContest.4bpp.lz");
+const u32 gNewSummaryScreen_Tab_Pal[] = INCBIN_U32("graphics/summary_screen_new/tab.gbapal.lz");
+
 const u32 gBagMaleTiles[] = INCBIN_U32("graphics/bag/bag_male.4bpp.lz");
 const u32 gBagFemaleTiles[] = INCBIN_U32("graphics/bag/bag_female.4bpp.lz");
 const u32 gBagPalette[] = INCBIN_U32("graphics/bag/bag.gbapal.lz");

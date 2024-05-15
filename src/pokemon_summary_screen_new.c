@@ -133,9 +133,11 @@ enum {
 // for the spriteIds field in PokemonSummaryScreenData
 enum
 {
-    SPRITE_ARR_ID_MON,
+    SPRITE_ARR_ID_TABS,
+    SPRITE_ARR_ID_MON = SPRITE_ARR_ID_TABS + PSS_PAGE_COUNT,
     SPRITE_ARR_ID_BALL,
     SPRITE_ARR_ID_STATUS,
+    // Page-specific sprites below, hidden when changing pages
     SPRITE_ARR_ID_TYPE, // 2 for mon types, 5 for move types(4 moves and 1 to learn), used interchangeably, because mon types and move types aren't shown on the same screen
     SPRITE_ARR_ID_MOVE_SELECTOR1 = SPRITE_ARR_ID_TYPE + TYPE_ICON_SPRITE_COUNT, // 10 sprites that make up the selector
     SPRITE_ARR_ID_MOVE_SELECTOR2 = SPRITE_ARR_ID_MOVE_SELECTOR1 + MOVE_SELECTOR_SPRITES_COUNT,
@@ -237,10 +239,6 @@ static bool8 IsValidToViewInMulti(struct Pokemon *);
 static void ChangePage(u8, s8);
 static void PssScrollCurrentPageOut(u8);
 static void PssScrollNewPageIn(u8);
-static void PssScrollRight(u8);
-static void PssScrollRightEnd(u8);
-static void PssScrollLeft(u8);
-static void PssScrollLeftEnd(u8);
 static void TryDrawExperienceProgressBar(void);
 static void SwitchToMoveSelection(u8);
 static void Task_HandleInput_MoveSelect(u8);
@@ -257,7 +255,7 @@ static void Task_HandleReplaceMoveInput(u8);
 static bool8 CanReplaceMove(void);
 static void ShowCantForgetHMsWindow(u8);
 static void Task_HandleInputCantForgetHMsMoves(u8);
-static void DrawPagination(void);
+static void CreatePageTabs(void);
 static void HandlePowerAccTilemap(u16, s16);
 static void Task_ShowPowerAccWindow(u8);
 static void HandleAppealJamTilemap(u16, s16, u16);
@@ -340,6 +338,9 @@ static void SetMainMoveSelectorColor(u8);
 static void KeepMoveSelectorVisible(u8);
 static void SummaryScreen_DestroyAnimDelayTask(void);
 static void ScrollBackground(void);
+static void LoadPageTabSprites(void);
+static void CreatePageTab(u8);
+static void UpdatePageTabs(void);
 
 static const struct BgTemplate sBgTemplates[] =
 {
@@ -754,6 +755,11 @@ static const u8 sMovesPPLayout[] = _("{PP}{DYNAMIC 0}/{DYNAMIC 1}");
 #define TAG_MOVE_TYPES 30002
 #define TAG_MON_MARKINGS 30003
 #define TAG_CATEGORY_ICONS 30004
+#define TAG_PAGE_TAB_INFO_GFX 30005
+#define TAG_PAGE_TAB_STATS_GFX 30006
+#define TAG_PAGE_TAB_BATTLE_GFX 30007
+#define TAG_PAGE_TAB_CONTEST_GFX 30008
+#define TAG_PAGE_TAB_PAL 30009
 
 static const u16 sCategoryIcons_Pal[] = INCBIN_U16("graphics/interface/category_icons.gbapal");
 static const u32 sCategoryIcons_Gfx[] = INCBIN_U32("graphics/interface/category_icons.4bpp.lz");
@@ -1083,6 +1089,22 @@ static const struct OamData sOamData_StatusCondition =
     .paletteNum = 0,
     .affineParam = 0,
 };
+static const struct OamData sOamData_PageTab =
+{
+    .y = 0,
+    .affineMode = ST_OAM_AFFINE_OFF,
+    .objMode = ST_OAM_OBJ_NORMAL,
+    .mosaic = FALSE,
+    .bpp = ST_OAM_4BPP,
+    .shape = SPRITE_SHAPE(16x16),
+    .x = 0,
+    .matrixNum = 0,
+    .size = SPRITE_SIZE(16x16),
+    .tileNum = 0,
+    .priority = 0,
+    .paletteNum = 0,
+    .affineParam = 0,
+};
 static const union AnimCmd sSpriteAnim_StatusPoison[] = {
     ANIMCMD_FRAME(0, 0, FALSE, FALSE),
     ANIMCMD_END
@@ -1145,6 +1167,75 @@ static const struct SpriteTemplate sSpriteTemplate_StatusCondition =
     .images = NULL,
     .affineAnims = gDummySpriteAffineAnimTable,
     .callback = SpriteCallbackDummy
+};
+
+static const union AnimCmd sPageTabAnim_Deselected[] =
+{
+    ANIMCMD_FRAME(0, 0),
+    ANIMCMD_END
+};
+
+static const union AnimCmd sPageTabAnim_Selected[] =
+{
+    ANIMCMD_FRAME(4, 0),
+    ANIMCMD_END
+};
+static const union AnimCmd *const sSpriteAnimTable_PageTab[] =
+{
+    sPageTabAnim_Deselected,
+    sPageTabAnim_Selected
+};
+
+static const struct CompressedSpriteSheet sSpriteSheet_PageTabs[] =
+{
+    {gNewSummaryScreen_InfoTab_Gfx, 0x100, TAG_PAGE_TAB_INFO_GFX},
+    {gNewSummaryScreen_StatsTab_Gfx, 0x100, TAG_PAGE_TAB_STATS_GFX},
+    {gNewSummaryScreen_BattleTab_Gfx, 0x100, TAG_PAGE_TAB_BATTLE_GFX},
+    {gNewSummaryScreen_ContestTab_Gfx, 0x100, TAG_PAGE_TAB_CONTEST_GFX},
+};
+
+static const struct CompressedSpritePalette sSpritePalette_PageTab =
+{
+    gNewSummaryScreen_Tab_Pal, TAG_PAGE_TAB_PAL
+};
+static const struct SpriteTemplate sSpriteTemplate_PageTab[4] =
+{
+    {
+        .tileTag = TAG_PAGE_TAB_INFO_GFX,
+        .paletteTag = TAG_PAGE_TAB_PAL,
+        .oam = &sOamData_PageTab,
+        .anims = sSpriteAnimTable_PageTab,
+        .images = NULL,
+        .affineAnims = gDummySpriteAffineAnimTable,
+        .callback = SpriteCallbackDummy
+    },
+    {
+        .tileTag = TAG_PAGE_TAB_STATS_GFX,
+        .paletteTag = TAG_PAGE_TAB_PAL,
+        .oam = &sOamData_PageTab,
+        .anims = sSpriteAnimTable_PageTab,
+        .images = NULL,
+        .affineAnims = gDummySpriteAffineAnimTable,
+        .callback = SpriteCallbackDummy
+    },
+    {
+        .tileTag = TAG_PAGE_TAB_BATTLE_GFX,
+        .paletteTag = TAG_PAGE_TAB_PAL,
+        .oam = &sOamData_PageTab,
+        .anims = sSpriteAnimTable_PageTab,
+        .images = NULL,
+        .affineAnims = gDummySpriteAffineAnimTable,
+        .callback = SpriteCallbackDummy
+    },
+    {
+        .tileTag = TAG_PAGE_TAB_CONTEST_GFX,
+        .paletteTag = TAG_PAGE_TAB_PAL,
+        .oam = &sOamData_PageTab,
+        .anims = sSpriteAnimTable_PageTab,
+        .images = NULL,
+        .affineAnims = gDummySpriteAffineAnimTable,
+        .callback = SpriteCallbackDummy
+    },
 };
 static const u16 sMarkings_Pal[] = INCBIN_U16("graphics/summary_screen/markings.gbapal");
 
@@ -1284,45 +1375,42 @@ static bool8 LoadGraphics(void)
         gMain.state++;
         break;
     case 8:
-        DrawPagination();
-        gMain.state++;
-        break;
-    case 9:
         CopyMonToSummaryStruct(&sMonSummaryScreen->currentMon);
         sMonSummaryScreen->switchCounter = 0;
         gMain.state++;
         break;
-    case 10:
+    case 9:
         if (ExtractMonDataToSummaryStruct(&sMonSummaryScreen->currentMon) != 0)
             gMain.state++;
         break;
-    case 11:
+    case 10:
         PrintMonInfo();
         gMain.state++;
         break;
-    case 12:
+    case 11:
         PrintPageNamesAndStats();
         gMain.state++;
         break;
-    case 13:
+    case 12:
         PrintPageSpecificText(sMonSummaryScreen->currPageIndex);
         gMain.state++;
         break;
-    case 14:
+    case 13:
         SetDefaultTilemaps();
         gMain.state++;
         break;
-    case 15:
+    case 14:
         PutPageWindowTilemaps(sMonSummaryScreen->currPageIndex);
         gMain.state++;
         break;
-    case 16:
+    case 15:
         ResetSpriteIds();
+        LoadPageTabSprites();
         CreateMoveTypeIcons();
         sMonSummaryScreen->switchCounter = 0;
         gMain.state++;
         break;
-    case 17:
+    case 16:
         sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON] = LoadMonGfxAndSprite(&sMonSummaryScreen->currentMon, &sMonSummaryScreen->switchCounter);
         if (sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON] != SPRITE_NONE)
         {
@@ -1330,20 +1418,24 @@ static bool8 LoadGraphics(void)
             gMain.state++;
         }
         break;
-    case 18:
+    case 17:
         CreateMonMarkingsSprite(&sMonSummaryScreen->currentMon);
         gMain.state++;
         break;
-    case 19:
+    case 18:
         CreateCaughtBallSprite(&sMonSummaryScreen->currentMon);
         gMain.state++;
         break;
-    case 20:
+    case 19:
         CreateSetStatusSprite();
         gMain.state++;
         break;
-    case 21:
+    case 20:
         SetTypeIcons();
+        gMain.state++;
+        break;
+    case 21:
+        CreatePageTabs();
         gMain.state++;
         break;
     case 22:
@@ -1902,7 +1994,7 @@ static void PssScrollNewPageIn(u8 taskId)
     scrollState += PAGE_SCROLL_SPEED;
     if (data[0] > 0xFF)
     {
-        DrawPagination();
+        UpdatePageTabs();
         PutPageWindowTilemaps(sMonSummaryScreen->currPageIndex);
         SetTypeIcons();
         //TryDrawExperienceProgressBar();
@@ -1913,98 +2005,6 @@ static void PssScrollNewPageIn(u8 taskId)
 #undef scrollState
 #undef bgId
 #undef direction
-
-static void PssScrollRight(u8 taskId) // Scroll right
-{
-    s16 *data = gTasks[taskId].data;
-    if (data[0] == 0)
-    {
-        if (sMonSummaryScreen->bgDisplayOrder == 0)
-        {
-            data[1] = 1;
-            SetBgAttribute(1, BG_ATTR_PRIORITY, 1);
-            SetBgAttribute(2, BG_ATTR_PRIORITY, 2);
-            ScheduleBgCopyTilemapToVram(1);
-        }
-        else
-        {
-            data[1] = 2;
-            SetBgAttribute(2, BG_ATTR_PRIORITY, 1);
-            SetBgAttribute(1, BG_ATTR_PRIORITY, 2);
-            ScheduleBgCopyTilemapToVram(2);
-        }
-        ChangeBgX(data[1], 0, BG_COORD_SET);
-        SetBgTilemapBuffer(data[1], sMonSummaryScreen->bgTilemapBuffers[sMonSummaryScreen->currPageIndex][0]);
-        ShowBg(1);
-        ShowBg(2);
-    }
-    ChangeBgX(data[1], 0x2000, BG_COORD_ADD);
-    data[0] += 32;
-    if (data[0] > 0xFF)
-        gTasks[taskId].func = PssScrollRightEnd;
-}
-
-static void PssScrollRightEnd(u8 taskId) // display right
-{
-    s16 *data = gTasks[taskId].data;
-    sMonSummaryScreen->bgDisplayOrder ^= 1;
-    data[1] = 0;
-    data[0] = 0;
-    DrawPagination();
-    PutPageWindowTilemaps(sMonSummaryScreen->currPageIndex);
-    SetTypeIcons();
-    TryDrawExperienceProgressBar();
-    SwitchTaskToFollowupFunc(taskId);
-}
-
-static void PssScrollLeft(u8 taskId) // Scroll left
-{
-    s16 *data = gTasks[taskId].data;
-    if (data[0] == 0)
-    {
-        if (sMonSummaryScreen->bgDisplayOrder == 0)
-            data[1] = 2;
-        else
-            data[1] = 1;
-        ChangeBgX(data[1], 0x10000, BG_COORD_SET);
-    }
-    ChangeBgX(data[1], 0x2000, BG_COORD_SUB);
-    data[0] += 32;
-    if (data[0] > 0xFF)
-        gTasks[taskId].func = PssScrollLeftEnd;
-}
-
-static void PssScrollLeftEnd(u8 taskId) // display left
-{
-    s16 *data = gTasks[taskId].data;
-    if (sMonSummaryScreen->bgDisplayOrder == 0)
-    {
-        SetBgAttribute(1, BG_ATTR_PRIORITY, 1);
-        SetBgAttribute(2, BG_ATTR_PRIORITY, 2);
-        ScheduleBgCopyTilemapToVram(2);
-    }
-    else
-    {
-        SetBgAttribute(2, BG_ATTR_PRIORITY, 1);
-        SetBgAttribute(1, BG_ATTR_PRIORITY, 2);
-        ScheduleBgCopyTilemapToVram(1);
-    }
-    if (sMonSummaryScreen->currPageIndex > 1)
-    {
-        SetBgTilemapBuffer(data[1], sMonSummaryScreen->bgTilemapBuffers[sMonSummaryScreen->currPageIndex - 1][0]);
-        ChangeBgX(data[1], 0x10000, BG_COORD_SET);
-    }
-    ShowBg(1);
-    ShowBg(2);
-    sMonSummaryScreen->bgDisplayOrder ^= 1;
-    data[1] = 0;
-    data[0] = 0;
-    DrawPagination();
-    PutPageWindowTilemaps(sMonSummaryScreen->currPageIndex);
-    SetTypeIcons();
-    TryDrawExperienceProgressBar();
-    SwitchTaskToFollowupFunc(taskId);
-}
 
 static void TryDrawExperienceProgressBar(void)
 {
@@ -2470,71 +2470,14 @@ u8 GetMoveSlotToReplace_New(void)
     return sMoveSlotToReplace_New;
 }
 
-static void DrawPagination(void) // Updates the pagination dots at the top of the summary screen
+static void CreatePageTabs(void) // Updates the pagination dots at the top of the summary screen
 {
-    u16 *tilemap = Alloc(8 * PSS_PAGE_COUNT);
     u8 i;
 
     for (i = 0; i < PSS_PAGE_COUNT; i++)
-    {
-        u8 j = i * 2;
-
-        if (i < sMonSummaryScreen->minPageIndex)
-        {
-            tilemap[j + 0] = 0x40;
-            tilemap[j + 1] = 0x40;
-            tilemap[j + 2 * PSS_PAGE_COUNT] = 0x50;
-            tilemap[j + 2 * PSS_PAGE_COUNT + 1] = 0x50;
-        }
-        else if (i > sMonSummaryScreen->maxPageIndex)
-        {
-            tilemap[j + 0] = 0x4A;
-            tilemap[j + 1] = 0x4A;
-            tilemap[j + 2 * PSS_PAGE_COUNT] = 0x5A;
-            tilemap[j + 2 * PSS_PAGE_COUNT + 1] = 0x5A;
-        }
-        else if (i < sMonSummaryScreen->currPageIndex)
-        {
-            tilemap[j + 0] = 0x46;
-            tilemap[j + 1] = 0x47;
-            tilemap[j + 2 * PSS_PAGE_COUNT] = 0x56;
-            tilemap[j + 2 * PSS_PAGE_COUNT + 1] = 0x57;
-        }
-        else if (i == sMonSummaryScreen->currPageIndex)
-        {
-            if (i != sMonSummaryScreen->maxPageIndex)
-            {
-                tilemap[j + 0] = 0x41;
-                tilemap[j + 1] = 0x42;
-                tilemap[j + 2 * PSS_PAGE_COUNT] = 0x51;
-                tilemap[j + 2 * PSS_PAGE_COUNT + 1] = 0x52;
-            }
-            else
-            {
-                tilemap[j + 0] = 0x4B;
-                tilemap[j + 1] = 0x4C;
-                tilemap[j + 2 * PSS_PAGE_COUNT] = 0x5B;
-                tilemap[j + 2 * PSS_PAGE_COUNT + 1] = 0x5C;
-            }
-        }
-        else if (i != sMonSummaryScreen->maxPageIndex)
-        {
-            tilemap[j + 0] = 0x43;
-            tilemap[j + 1] = 0x44;
-            tilemap[j + 2 * PSS_PAGE_COUNT] = 0x53;
-            tilemap[j + 2 * PSS_PAGE_COUNT + 1] = 0x54;
-        }
-        else
-        {
-            tilemap[j + 0] = 0x48;
-            tilemap[j + 1] = 0x49;
-            tilemap[j + 2 * PSS_PAGE_COUNT] = 0x58;
-            tilemap[j + 2 * PSS_PAGE_COUNT + 1] = 0x59;
-        }
-    }
-    CopyToBgTilemapBufferRect_ChangePalette(3, tilemap, 11, 0, PSS_PAGE_COUNT * 2, 2, 16);
-    ScheduleBgCopyTilemapToVram(3);
-    Free(tilemap);
+        CreatePageTab(i);
+        
+    UpdatePageTabs();
 }
 
 static void ChangeTilemap(const struct TilemapCtrl *unkStruct, u16 *dest, u8 c, bool8 d)
@@ -2650,7 +2593,7 @@ static void Task_ShowAppealJamWindow(u8 taskId)
     {
         if (data[0] < 0)
         {
-            if (sMonSummaryScreen->currPageIndex == PSS_PAGE_CONTEST_MOVES && FuncIsActiveTask(PssScrollRight) == 0)
+            if (sMonSummaryScreen->currPageIndex == PSS_PAGE_CONTEST_MOVES /*&& FuncIsActiveTask(PssScrollRight) == 0*/)
                 PutWindowTilemap(PSS_LABEL_WINDOW_MOVES_APPEAL_JAM);
             DrawContestMoveHearts(data[2]);
         }
@@ -4256,4 +4199,42 @@ static void KeepMoveSelectorVisible(u8 firstSpriteId)
         gSprites[spriteIds[i]].data[1] = 0;
         gSprites[spriteIds[i]].invisible = FALSE;
     }
+}
+
+static void LoadPageTabSprites(void)
+{
+    u8 i = 0;
+
+    for (i = 0; i < PSS_PAGE_COUNT; i++)
+        LoadCompressedSpriteSheet(&sSpriteSheet_PageTabs[i]);
+    LoadCompressedSpritePalette(&sSpritePalette_PageTab);
+}
+
+static void CreatePageTab(u8 pageIndex)
+{
+    u8 *spriteId = &sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_TABS + pageIndex];
+    u8 xOffset = 96 + (16 * pageIndex);
+
+    if (*spriteId == SPRITE_NONE)
+        *spriteId = CreateSprite(&sSpriteTemplate_PageTab[pageIndex], xOffset, 8, 0);
+}
+
+static void UpdatePageTabs()
+{
+    u8 *spriteIds = &sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_TABS];
+    u8 i = 0;
+
+    for (i = 0; i < PSS_PAGE_COUNT; i++)
+    {
+        if (sMonSummaryScreen->currPageIndex == i)
+            StartSpriteAnim(&gSprites[spriteIds[i]], 1);
+        else
+            StartSpriteAnim(&gSprites[spriteIds[i]], 0);
+    }
+}
+
+static void ScrollBackground(void)
+{
+    ChangeBgX(3, 64, BG_COORD_SUB);
+    ChangeBgY(3, 64, BG_COORD_SUB);
 }
