@@ -1644,9 +1644,11 @@ const u32 gNewSummaryPage_InfoEgg_Tilemap[] = INCBIN_U32("graphics/summary_scree
 const u32 gNewSummaryPage_Skills_Tilemap[] = INCBIN_U32("graphics/summary_screen_new/pss-stats.bin.lz");
 const u32 gNewSummaryPage_BattleMoves_Tilemap[] = INCBIN_U32("graphics/summary_screen_new/pss-battle.bin.lz");
 const u32 gNewSummaryPage_ContestMoves_Tilemap[] = INCBIN_U32("graphics/summary_screen_new/pss-contest.bin.lz");
-const u16 gNewSummaryScreen_MoveEffect_Battle_Tilemap[] = INCBIN_U16("graphics/summary_screen_new/pss-battle-detail.bin.lz");
-const u16 gNewSummaryScreen_MoveEffect_Contest_Tilemap[] = INCBIN_U16("graphics/summary_screen_new/pss-contest-detail.bin.lz");
-//const u16 gNewSummaryScreen_MoveEffect_Cancel_Tilemap[];
+const u16 gNewSummaryScreen_MoveEffect_Battle_Tilemap[] = INCBIN_U16("graphics/summary_screen_new/pss-battle-detail.bin");
+const u16 gNewSummaryScreen_MoveEffect_Contest_Tilemap[] = INCBIN_U16("graphics/summary_screen_new/pss-contest-detail.bin");
+const u16 gNewSummaryScreen_MoveEffect_Cancel_Tilemap[] = INCBIN_U16("graphics/summary_screen_new/pss-move-detail-cancel.bin");
+const u16 gNewSummaryScreen_MoveEffect_FifthSlot[] = INCBIN_U16("graphics/summary_screen_new/pss-move-fifth-slot.bin");
+const u16 gNewSummaryScreen_MoveEffect_Detail[] = INCBIN_U16("graphics/summary_screen_new/pss-move-detail.bin");
 
 const u32 gNewSummaryScreen_InfoTab_Gfx[] = INCBIN_U32("graphics/summary_screen_new/tabInfo.4bpp.lz");
 const u32 gNewSummaryScreen_StatsTab_Gfx[] = INCBIN_U32("graphics/summary_screen_new/tabStats.4bpp.lz");

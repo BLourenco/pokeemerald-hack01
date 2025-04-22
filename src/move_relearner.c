@@ -16,6 +16,7 @@
 #include "overworld.h"
 #include "palette.h"
 #include "pokemon_summary_screen.h"
+#include "pokemon_summary_screen_new.h"
 #include "script.h"
 #include "sound.h"
 #include "sprite.h"
@@ -658,7 +659,11 @@ static void DoMoveRelearnerMain(void)
     case MENU_STATE_SHOW_MOVE_SUMMARY_SCREEN:
         if (!gPaletteFade.active)
         {
-            ShowSelectMovePokemonSummaryScreen(gPlayerParty, sMoveRelearnerStruct->partyMon, gPlayerPartyCount - 1, CB2_InitLearnMoveReturnFromSelectMove, GetCurrentSelectedMove());
+            
+            if (NEW_SUMMARY_SCREEN)
+                ShowSelectMovePokemonSummaryScreen_New(gPlayerParty, sMoveRelearnerStruct->partyMon, gPlayerPartyCount - 1, CB2_InitLearnMoveReturnFromSelectMove, GetCurrentSelectedMove());   
+            else
+                ShowSelectMovePokemonSummaryScreen(gPlayerParty, sMoveRelearnerStruct->partyMon, gPlayerPartyCount - 1, CB2_InitLearnMoveReturnFromSelectMove, GetCurrentSelectedMove());   
             FreeMoveRelearnerResources();
         }
         break;

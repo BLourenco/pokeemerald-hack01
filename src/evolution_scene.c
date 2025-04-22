@@ -19,6 +19,7 @@
 #include "pokedex.h"
 #include "pokemon.h"
 #include "pokemon_summary_screen.h"
+#include "pokemon_summary_screen_new.h"
 #include "scanline_effect.h"
 #include "sound.h"
 #include "sprite.h"
@@ -967,7 +968,12 @@ static void Task_EvolutionScene(u8 taskId)
             if (!gPaletteFade.active)
             {
                 FreeAllWindowBuffers();
-                ShowSelectMovePokemonSummaryScreen(gPlayerParty, gTasks[taskId].tPartyId,
+                if (NEW_SUMMARY_SCREEN)
+                    ShowSelectMovePokemonSummaryScreen_New(gPlayerParty, gTasks[taskId].tPartyId,
+                        gPlayerPartyCount - 1, CB2_EvolutionSceneLoadGraphics,
+                        gMoveToLearn);
+                else
+                    ShowSelectMovePokemonSummaryScreen(gPlayerParty, gTasks[taskId].tPartyId,
                             gPlayerPartyCount - 1, CB2_EvolutionSceneLoadGraphics,
                             gMoveToLearn);
                 gTasks[taskId].tLearnMoveState++;
@@ -1349,7 +1355,12 @@ static void Task_TradeEvolutionScene(u8 taskId)
                 Free(GetBgTilemapBuffer(0));
                 FreeAllWindowBuffers();
 
-                ShowSelectMovePokemonSummaryScreen(gPlayerParty, gTasks[taskId].tPartyId,
+                if (NEW_SUMMARY_SCREEN)                    
+                    ShowSelectMovePokemonSummaryScreen_New(gPlayerParty, gTasks[taskId].tPartyId,
+                        gPlayerPartyCount - 1, CB2_TradeEvolutionSceneLoadGraphics,
+                        gMoveToLearn);
+                else
+                    ShowSelectMovePokemonSummaryScreen(gPlayerParty, gTasks[taskId].tPartyId,
                             gPlayerPartyCount - 1, CB2_TradeEvolutionSceneLoadGraphics,
                             gMoveToLearn);
                 gTasks[taskId].tLearnMoveState++;

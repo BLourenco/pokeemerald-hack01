@@ -1658,14 +1658,14 @@ static void SetDefaultTilemaps(void)
 {
     if (sMonSummaryScreen->currPageIndex != PSS_PAGE_BATTLE_MOVES && sMonSummaryScreen->currPageIndex != PSS_PAGE_CONTEST_MOVES)
     {
-        HandlePowerAccTilemap(0, 0xFF);
-        HandleAppealJamTilemap(0, 0xFF, 0);
+        // HandlePowerAccTilemap(0, 0xFF);
+        // HandleAppealJamTilemap(0, 0xFF, 0);
     }
     else
     {
         DrawContestMoveHearts(sMonSummaryScreen->summary.moves[sMonSummaryScreen->firstMoveIndex]);
-        TilemapFiveMovesDisplay(sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_BATTLE_MOVES][0], 3, FALSE);
-        TilemapFiveMovesDisplay(sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_CONTEST_MOVES][0], 1, FALSE);
+        TilemapFiveMovesDisplay(sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_BATTLE_MOVES][0], 2, FALSE);
+        TilemapFiveMovesDisplay(sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_CONTEST_MOVES][0], 3, FALSE);
         SetBgTilemapBuffer(1, sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_CONTEST_MOVES][0]);
         SetBgTilemapBuffer(2, sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_BATTLE_MOVES][0]);
         ChangeBgX(2, 0x10000, BG_COORD_ADD);
@@ -1674,7 +1674,7 @@ static void SetDefaultTilemaps(void)
     }
 
     LimitEggSummaryPageDisplay();
-    DrawPokerusCuredSymbol(&sMonSummaryScreen->currentMon);
+    // DrawPokerusCuredSymbol(&sMonSummaryScreen->currentMon);
 }
 
 static void FreeSummaryScreen(void)
@@ -1842,7 +1842,7 @@ static void Task_ChangeSummaryMon(u8 taskId)
         CreateCaughtBallSprite(&sMonSummaryScreen->currentMon);
         break;
     case 7:
-        DrawPokerusCuredSymbol(&sMonSummaryScreen->currentMon);
+        // DrawPokerusCuredSymbol(&sMonSummaryScreen->currentMon);
         data[1] = 0;
         break;
     case 8:
@@ -2021,15 +2021,15 @@ static void SwitchToMoveSelection(u8 taskId)
     ClearWindowTilemap(PSS_LABEL_WINDOW_PORTRAIT_SPECIES);
     if (!gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_STATUS]].invisible)
         ClearWindowTilemap(PSS_LABEL_WINDOW_POKEMON_SKILLS_STATUS);
-    HandlePowerAccTilemap(9, -3);
-    HandleAppealJamTilemap(9, -3, move);
+    // HandlePowerAccTilemap(9, -3);
+    // HandleAppealJamTilemap(9, -3, move);
     if (!sMonSummaryScreen->lockMovesFlag)
     {
         ClearWindowTilemap(PSS_LABEL_WINDOW_PROMPT_INFO);
         PutWindowTilemap(PSS_LABEL_WINDOW_PROMPT_SWITCH);
     }
-    TilemapFiveMovesDisplay(sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_BATTLE_MOVES][0], 3, FALSE);
-    TilemapFiveMovesDisplay(sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_CONTEST_MOVES][0], 1, FALSE);
+    TilemapFiveMovesDisplay(sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_BATTLE_MOVES][0], 2, FALSE);
+    TilemapFiveMovesDisplay(sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_CONTEST_MOVES][0], 3, FALSE);
     PrintMoveDetails(move);
     PrintNewMoveDetailsOrCancelText();
     SetNewMoveTypeIcon();
@@ -2128,8 +2128,8 @@ static void ChangeSelectedMove(s16 *taskData, s8 direction, u8 *moveIndexPtr)
         if (!gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_STATUS]].invisible)
             ClearWindowTilemap(PSS_LABEL_WINDOW_POKEMON_SKILLS_STATUS);
         ScheduleBgCopyTilemapToVram(0);
-        HandlePowerAccTilemap(9, -3);
-        HandleAppealJamTilemap(9, -3, move);
+        // HandlePowerAccTilemap(9, -3);
+        // HandleAppealJamTilemap(9, -3, move);
     }
     if (*moveIndexPtr != MAX_MON_MOVES
         && newMoveIndex == MAX_MON_MOVES
@@ -2139,8 +2139,8 @@ static void ChangeSelectedMove(s16 *taskData, s8 direction, u8 *moveIndexPtr)
         ClearWindowTilemap(PSS_LABEL_WINDOW_MOVES_APPEAL_JAM);
         DestroyCategoryIcon();
         ScheduleBgCopyTilemapToVram(0);
-        HandlePowerAccTilemap(0, 3);
-        HandleAppealJamTilemap(0, 3, 0);
+        // HandlePowerAccTilemap(0, 3);
+        // HandleAppealJamTilemap(0, 3, 0);
     }
 
     *moveIndexPtr = newMoveIndex;
@@ -2157,16 +2157,16 @@ static void CloseMoveSelectMode(u8 taskId)
     ClearWindowTilemap(PSS_LABEL_WINDOW_PROMPT_SWITCH);
     PutWindowTilemap(PSS_LABEL_WINDOW_PROMPT_INFO);
     PrintMoveDetails(0);
-    TilemapFiveMovesDisplay(sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_BATTLE_MOVES][0], 3, TRUE);
-    TilemapFiveMovesDisplay(sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_CONTEST_MOVES][0], 1, TRUE);
+    TilemapFiveMovesDisplay(sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_BATTLE_MOVES][0], 2, TRUE);
+    TilemapFiveMovesDisplay(sMonSummaryScreen->bgTilemapBuffers[PSS_PAGE_CONTEST_MOVES][0], 3, TRUE);
     AddAndFillMoveNamesWindow(); // This function seems to have no effect.
     if (sMonSummaryScreen->firstMoveIndex != MAX_MON_MOVES)
     {
         ClearWindowTilemap(PSS_LABEL_WINDOW_MOVES_POWER_ACC);
         ClearWindowTilemap(PSS_LABEL_WINDOW_MOVES_APPEAL_JAM);
         DestroyCategoryIcon();
-        HandlePowerAccTilemap(0, 3);
-        HandleAppealJamTilemap(0, 3, 0);
+        // HandlePowerAccTilemap(0, 3);
+        // HandleAppealJamTilemap(0, 3, 0);
     }
     ScheduleBgCopyTilemapToVram(0);
     ScheduleBgCopyTilemapToVram(1);
@@ -2393,8 +2393,8 @@ static void ShowCantForgetHMsWindow(u8 taskId)
     ClearWindowTilemap(PSS_LABEL_WINDOW_MOVES_APPEAL_JAM);
     gSprites[sMonSummaryScreen->categoryIconSpriteId].invisible = TRUE;
     ScheduleBgCopyTilemapToVram(0);
-    HandlePowerAccTilemap(0, 3);
-    HandleAppealJamTilemap(0, 3, 0);
+    // HandlePowerAccTilemap(0, 3);
+    // HandleAppealJamTilemap(0, 3, 0);
     PrintHMMovesCantBeForgotten();
     gTasks[taskId].func = Task_HandleInputCantForgetHMsMoves;
 }
@@ -2432,8 +2432,8 @@ static void Task_HandleInputCantForgetHMsMoves(u8 taskId)
                 move = sMonSummaryScreen->summary.moves[sMonSummaryScreen->firstMoveIndex];
                 gTasks[taskId].func = Task_HandleReplaceMoveInput;
                 ChangePage(taskId, -1);
-                HandlePowerAccTilemap(9, -2);
-                HandleAppealJamTilemap(9, -2, move);
+                // HandlePowerAccTilemap(9, -2);
+                // HandleAppealJamTilemap(9, -2, move);
             }
         }
         else if (JOY_NEW(DPAD_RIGHT) || GetLRKeysPressed() == MENU_R_PRESSED)
@@ -2446,8 +2446,8 @@ static void Task_HandleInputCantForgetHMsMoves(u8 taskId)
                 move = sMonSummaryScreen->summary.moves[sMonSummaryScreen->firstMoveIndex];
                 gTasks[taskId].func = Task_HandleReplaceMoveInput;
                 ChangePage(taskId, 1);
-                HandlePowerAccTilemap(9, -2);
-                HandleAppealJamTilemap(9, -2, move);
+                // HandlePowerAccTilemap(9, -2);
+                // HandleAppealJamTilemap(9, -2, move);
             }
         }
         else if (JOY_NEW(A_BUTTON | B_BUTTON))
@@ -2458,8 +2458,8 @@ static void Task_HandleInputCantForgetHMsMoves(u8 taskId)
             move = sMonSummaryScreen->summary.moves[sMonSummaryScreen->firstMoveIndex];
             PrintMoveDetails(move);
             ScheduleBgCopyTilemapToVram(0);
-            HandlePowerAccTilemap(9, -3);
-            HandleAppealJamTilemap(9, -3, move);
+            // HandlePowerAccTilemap(9, -3);
+            // HandleAppealJamTilemap(9, -3, move);
             gTasks[taskId].func = Task_HandleReplaceMoveInput;
         }
     }
@@ -2615,26 +2615,66 @@ static void Task_ShowAppealJamWindow(u8 taskId)
 // Toggles the "Cancel" window that appears when selecting a move
 static void TilemapFiveMovesDisplay(u16 *dst, u16 palette, bool8 remove)
 {
-    u16 i, id;
+    u16 i, j, id, tilesPerRow;
 
     palette *= 0x1000;
-    id = 0x56A;
+    id = 0x56B;
+    tilesPerRow = 19;
     if (!remove)
     {
-        for (i = 0; i < 20; i++)
+        for (i = 0; i < tilesPerRow; i++)
         {
-            dst[id + i] = gSummaryScreen_MoveEffect_Cancel_Tilemap[i] + palette;
-            dst[id + i + 0x20] = gSummaryScreen_MoveEffect_Cancel_Tilemap[i] + palette;
-            dst[id + i + 0x40] = gSummaryScreen_MoveEffect_Cancel_Tilemap[i + 20] + palette;
+            dst[id + i]        = gNewSummaryScreen_MoveEffect_FifthSlot[i] + palette;
+            dst[id + i + 0x20] = gNewSummaryScreen_MoveEffect_FifthSlot[tilesPerRow + i] + palette;
+        }
+
+        id = 0x5A0;
+        tilesPerRow = 30;
+
+        for (j = 0; j < tilesPerRow; j++)
+        {
+            if (sMonSummaryScreen->currPageIndex == PSS_PAGE_BATTLE_MOVES)
+            {
+                dst[id + j] = gNewSummaryScreen_MoveEffect_Detail[j] + palette;
+                dst[id + j + 0x20] = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow + j] + palette;
+                dst[id + j + 0x40] = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 2 + j] + palette;
+                dst[id + j + 0x60] = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 3 + j] + palette;
+                dst[id + j + 0x80] = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 4 + j] + palette;
+                dst[id + j + 0xA0] = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 5 + j] + palette;
+                dst[id + j + 0xC0] = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 6 + j] + palette;
+            }
+            else if (sMonSummaryScreen->currPageIndex == PSS_PAGE_CONTEST_MOVES)
+            {
+                dst[id + j]        = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 7 + j] + palette;
+                dst[id + j + 0x20] = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 8 + j] + palette;
+                dst[id + j + 0x40] = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 9 + j] + palette;
+                dst[id + j + 0x60] = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 10 + j] + palette;
+                dst[id + j + 0x80] = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 11 + j] + palette;
+                dst[id + j + 0xA0] = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 12 + j] + palette;
+                dst[id + j + 0xC0] = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 13 + j] + palette;
+            }
         }
     }
     else // Remove
     {
-        for (i = 0; i < 20; i++)
+        for (i = 0; i < 19; i++)
         {
-            dst[id + i] = gSummaryScreen_MoveEffect_Cancel_Tilemap[i + 20] + palette;
-            dst[id + i + 0x20] = gSummaryScreen_MoveEffect_Cancel_Tilemap[i + 40] + palette;
-            dst[id + i + 0x40] = gSummaryScreen_MoveEffect_Cancel_Tilemap[i + 40] + palette;
+            dst[id + i]        = gNewSummaryScreen_MoveEffect_FifthSlot[tilesPerRow * 4 + i] + palette;
+            dst[id + i + 0x20] = gNewSummaryScreen_MoveEffect_FifthSlot[tilesPerRow * 5 + i] + palette;
+        }
+
+        id = 0x5A0;
+        tilesPerRow = 30;
+
+        for (j = 0; j < tilesPerRow; j++)
+        {
+            dst[id + j]        = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 14 + j] + palette;
+            dst[id + j + 0x20] = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 15 + j] + palette;
+            dst[id + j + 0x40] = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 16 + j] + palette;
+            dst[id + j + 0x60] = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 17 + j] + palette;
+            dst[id + j + 0x80] = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 18 + j] + palette;
+            dst[id + j + 0xA0] = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 19 + j] + palette;
+            dst[id + j + 0xC0] = gNewSummaryScreen_MoveEffect_Detail[tilesPerRow * 20 + j] + palette;
         }
     }
 }
