@@ -18,6 +18,7 @@
 #include "graphics.h"
 #include "international_string_util.h"
 #include "item.h"
+#include "item_icon.h"
 #include "link.h"
 #include "m4a.h"
 #include "malloc.h"
@@ -140,8 +141,11 @@ enum
 {
     SPRITE_ARR_ID_TABS,
     SPRITE_ARR_ID_MON = SPRITE_ARR_ID_TABS + PSS_PAGE_COUNT,
+    SPRITE_ARR_ID_MON_SHADOW,
     SPRITE_ARR_ID_BALL,
     SPRITE_ARR_ID_STATUS,
+    SPRITE_ARR_ID_ITEM,
+    SPRITE_ARR_ID_ITEM_SHADOW,
     // Page-specific sprites below, hidden when changing pages
     SPRITE_ARR_ID_TYPE, // 2 for mon types, 5 for move types(4 moves and 1 to learn), used interchangeably, because mon types and move types aren't shown on the same screen
     SPRITE_ARR_ID_MOVE_SELECTOR1 = SPRITE_ARR_ID_TYPE + TYPE_ICON_SPRITE_COUNT, // 10 sprites that make up the selector
@@ -338,6 +342,7 @@ static void RemoveAndCreateMonMarkingsSprite(struct Pokemon *);
 static void CreateCaughtBallSprite(struct Pokemon *);
 static void CreateSetStatusSprite(void);
 static void CreateMoveSelectorSprites(u8);
+static void CreateHeldItemSprite(void);
 static void SpriteCB_MoveSelector(struct Sprite *);
 static void DestroyMoveSelectorSprites(u8);
 static void SetMainMoveSelectorColor(u8);
@@ -802,6 +807,8 @@ static const u8 sMovesPPLayout[] = _("{PP}{DYNAMIC 0}/{DYNAMIC 1}");
 #define TAG_PAGE_TAB_BATTLE_GFX 30007
 #define TAG_PAGE_TAB_CONTEST_GFX 30008
 #define TAG_PAGE_TAB_PAL 30009
+#define TAG_HELD_ITEM 0xFDF3
+#define TAG_HELD_ITEM_SHADOW 0xFDF4
 
 static const u16 sCategoryIcons_Pal[] = INCBIN_U16("graphics/interface/category_icons.gbapal");
 static const u32 sCategoryIcons_Gfx[] = INCBIN_U32("graphics/interface/category_icons.4bpp.lz");
@@ -1477,21 +1484,25 @@ static bool8 LoadGraphics(void)
         gMain.state++;
         break;
     case 21:
-        CreatePageTabs();
+        CreateHeldItemSprite();
         gMain.state++;
         break;
     case 22:
+        CreatePageTabs();
+        gMain.state++;
+        break;
+    case 23:
         if (sMonSummaryScreen->mode != NEW_SUMMARY_MODE_SELECT_MOVE)
             CreateTask(Task_HandleInput, 0);
         else
             CreateTask(Task_SetHandleReplaceMoveInput, 0);
         gMain.state++;
         break;
-    case 23:
+    case 24:
         BlendPalettes(PALETTES_ALL, 16, 0);
         gMain.state++;
         break;
-    case 24:
+    case 25:
         BeginNormalPaletteFade(PALETTES_ALL, 0, 16, 0, RGB_BLACK);
         gPaletteFade.bufferTransferDisabled = 0;
         gMain.state++;
@@ -1870,24 +1881,29 @@ static void Task_ChangeSummaryMon(u8 taskId)
         DestroySpriteAndFreeResources(&gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_BALL]]);
         break;
     case 3:
+        DestroySpriteAndFreeResources(&gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM]]);
+        DestroySpriteAndFreeResources(&gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM_SHADOW]]);
+        break;
+    case 4:
         CopyMonToSummaryStruct(&sMonSummaryScreen->currentMon);
         sMonSummaryScreen->switchCounter = 0;
         break;
-    case 4:
+    case 5:
         if (ExtractMonDataToSummaryStruct(&sMonSummaryScreen->currentMon) == FALSE)
             return;
         break;
-    case 5:
+    case 6:
         RemoveAndCreateMonMarkingsSprite(&sMonSummaryScreen->currentMon);
         break;
-    case 6:
+    case 7:
         CreateCaughtBallSprite(&sMonSummaryScreen->currentMon);
         break;
-    case 7:
+    case 8:        
+        CreateSetStatusSprite();
         // DrawPokerusCuredSymbol(&sMonSummaryScreen->currentMon);
         data[1] = 0;
         break;
-    case 8:
+    case 9:
         sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON] = LoadMonGfxAndSprite(&sMonSummaryScreen->currentMon, &data[1]);
         if (sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON] == SPRITE_NONE)
             return;
@@ -1895,17 +1911,20 @@ static void Task_ChangeSummaryMon(u8 taskId)
         TryDrawExperienceProgressBar();
         data[1] = 0;
         break;
-    case 9:
-        SetTypeIcons();
-        break;
     case 10:
-        PrintMonInfo();
+        CreateHeldItemSprite();
         break;
     case 11:
+        SetTypeIcons();
+        break;
+    case 12:
+        PrintMonInfo();
+        break;
+    case 13:
         PrintPageSpecificText(sMonSummaryScreen->currPageIndex);
         LimitEggSummaryPageDisplay();
         break;
-    case 12:
+    case 14:
         gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON]].data[2] = 0;
         break;
     default:
@@ -4202,7 +4221,10 @@ static void CreateSetStatusSprite(void)
     u8 statusAnim;
 
     if (*spriteId == SPRITE_NONE)
-        *spriteId = CreateSprite(&sSpriteTemplate_StatusCondition, 64, 152, 0);
+    {
+        *spriteId = CreateSprite(&sSpriteTemplate_StatusCondition, 71, 39, 0);        
+        gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_STATUS]].oam.priority = 1;
+    }
 
     statusAnim = GetMonAilment(&sMonSummaryScreen->currentMon);
     if (statusAnim != 0)
@@ -4242,6 +4264,30 @@ static void CreateMoveSelectorSprites(u8 idArrayStart)
             gSprites[spriteIds[i]].data[1] = 0;
         }
     }
+}
+
+static void CreateHeldItemSprite(void)
+{
+    u8 *spriteId = &sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM];
+    u8 *spriteShadowId = &sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM_SHADOW];
+
+    FreeSpriteTilesByTag(TAG_HELD_ITEM);
+    FreeSpritePaletteByTag(TAG_HELD_ITEM);
+    *spriteId = AddItemIconSprite(TAG_HELD_ITEM, TAG_HELD_ITEM, sMonSummaryScreen->summary.item); 
+    gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM]].oam.priority = 1;
+    gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM]].x = 79;
+    gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM]].y = 133;        
+    SetSpriteInvisibility(SPRITE_ARR_ID_ITEM, sMonSummaryScreen->summary.item == ITEM_NONE);
+      
+    // Shadow 
+    // FreeSpriteTilesByTag(TAG_HELD_ITEM_SHADOW);
+    // FreeSpritePaletteByTag(TAG_HELD_ITEM_SHADOW);
+    // *spriteShadowId = AddItemIconSprite(TAG_HELD_ITEM_SHADOW, TAG_HELD_ITEM_SHADOW, sMonSummaryScreen->summary.item); 
+    // gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM_SHADOW]].oam.priority = 2;
+    // // gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM_SHADOW]].oam.paletteNum = 11;
+    // gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM_SHADOW]].x = 80;
+    // gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM_SHADOW]].y = 134;    
+    // SetSpriteInvisibility(SPRITE_ARR_ID_ITEM_SHADOW, sMonSummaryScreen->summary.item == ITEM_NONE);
 }
 
 static void SpriteCB_MoveSelector(struct Sprite *sprite)
