@@ -336,6 +336,7 @@ static void SwapMovesTypeSprites(u8, u8);
 static u8 LoadMonGfxAndSprite(struct Pokemon *, s16 *);
 static u8 CreateMonSprite(struct Pokemon *);
 static void SpriteCB_Pokemon(struct Sprite *);
+static u8 SetMonSpriteShadowPalette(u8);
 static void StopPokemonAnimations(void);
 static void CreateMonMarkingsSprite(struct Pokemon *);
 static void RemoveAndCreateMonMarkingsSprite(struct Pokemon *);
@@ -807,8 +808,8 @@ static const u8 sMovesPPLayout[] = _("{PP}{DYNAMIC 0}/{DYNAMIC 1}");
 #define TAG_PAGE_TAB_BATTLE_GFX 30007
 #define TAG_PAGE_TAB_CONTEST_GFX 30008
 #define TAG_PAGE_TAB_PAL 30009
-#define TAG_HELD_ITEM 0xFDF3
-#define TAG_HELD_ITEM_SHADOW 0xFDF4
+#define TAG_HELD_ITEM 30010
+#define TAG_DROP_SHADOW 30011
 
 static const u16 sCategoryIcons_Pal[] = INCBIN_U16("graphics/interface/category_icons.gbapal");
 static const u32 sCategoryIcons_Gfx[] = INCBIN_U32("graphics/interface/category_icons.4bpp.lz");
@@ -1288,6 +1289,13 @@ static const struct SpriteTemplate sSpriteTemplate_PageTab[4] =
 };
 static const u16 sMarkings_Pal[] = INCBIN_U16("graphics/summary_screen/markings.gbapal");
 
+static const u16 sDropShadow_Pal[] = INCBIN_U16("graphics/summary_screen_new/dropShadow.gbapal");
+
+static const struct SpritePalette sSpritePal_DropShadow =
+{
+    sDropShadow_Pal, TAG_DROP_SHADOW
+};
+
 // code
 static u8 ShowCategoryIcon(u32 category)
 {
@@ -1378,6 +1386,8 @@ static void VBlank(void)
     TransferPlttBuffer();
 }
 
+#define sIsShadow data[3];
+
 static void CB2_InitSummaryScreen(void)
 {
     while (MenuHelpers_ShouldWaitForLinkRecv() != TRUE && LoadGraphics() != TRUE && MenuHelpers_IsLinkActive() != TRUE);
@@ -1461,6 +1471,8 @@ static bool8 LoadGraphics(void)
         break;
     case 16:
         sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON] = LoadMonGfxAndSprite(&sMonSummaryScreen->currentMon, &sMonSummaryScreen->switchCounter);
+        sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON_SHADOW] = LoadMonGfxAndSprite(&sMonSummaryScreen->currentMon, &sMonSummaryScreen->switchCounter);
+        sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON_SHADOW] = SetMonSpriteShadowPalette(sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON_SHADOW]);
         if (sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON] != SPRITE_NONE)
         {
             sMonSummaryScreen->switchCounter = 0;
@@ -1876,6 +1888,7 @@ static void Task_ChangeSummaryMon(u8 taskId)
     case 1:
         SummaryScreen_DestroyAnimDelayTask();
         DestroySpriteAndFreeResources(&gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON]]);
+        DestroySpriteAndFreeResources(&gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON_SHADOW]]);
         break;
     case 2:
         DestroySpriteAndFreeResources(&gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_BALL]]);
@@ -1905,9 +1918,12 @@ static void Task_ChangeSummaryMon(u8 taskId)
         break;
     case 9:
         sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON] = LoadMonGfxAndSprite(&sMonSummaryScreen->currentMon, &data[1]);
+        sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON_SHADOW] = LoadMonGfxAndSprite(&sMonSummaryScreen->currentMon, &data[1]);
+        sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON_SHADOW] = SetMonSpriteShadowPalette(sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON_SHADOW]);
         if (sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON] == SPRITE_NONE)
             return;
         gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON]].data[2] = 1;
+        gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON_SHADOW]].data[2] = 1;
         TryDrawExperienceProgressBar();
         data[1] = 0;
         break;
@@ -1926,6 +1942,7 @@ static void Task_ChangeSummaryMon(u8 taskId)
         break;
     case 14:
         gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON]].data[2] = 0;
+        gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_MON_SHADOW]].data[2] = 0;
         break;
     default:
         if (!MenuHelpers_ShouldWaitForLinkRecv())
@@ -4114,7 +4131,7 @@ static void PlayMonCry(void)
 static u8 CreateMonSprite(struct Pokemon *unused)
 {
     struct PokeSummary *summary = &sMonSummaryScreen->summary;
-    u8 spriteId = CreateSprite(&gMultiuseSpriteTemplate, 52, 80, 5);
+    u8 spriteId = CreateSprite(&gMultiuseSpriteTemplate, 52, 84, 5);
 
     FreeSpriteOamMatrix(&gSprites[spriteId]);
     gSprites[spriteId].data[0] = summary->species2;
@@ -4141,6 +4158,29 @@ static void SpriteCB_Pokemon(struct Sprite *sprite)
         PokemonSummaryDoMonAnimation(sprite, sprite->data[0], summary->isEgg);
     }
 }
+
+static u8 SetMonSpriteShadowPalette(u8 spriteId)
+{
+    // struct PokeSummary *summary = &sMonSummaryScreen->summary;
+    u8 shadowPalette = 0;
+
+    // FreeSpriteOamMatrix(&gSprites[spriteId]);
+    // gSprites[spriteId].sSpecies = summary->species2;
+    // gSprites[spriteId].sDelayAnim = 0;
+    // gSprites[spriteId].callback = SpriteCB_Pokemon;
+    gSprites[spriteId].oam.priority = 1;
+
+    FreeSpritePaletteByTag(TAG_DROP_SHADOW);
+    shadowPalette = LoadSpritePalette(&sSpritePal_DropShadow);
+    gSprites[spriteId].oam.paletteNum = shadowPalette;
+    // gSprites[spriteId].oam.objMode = ST_OAM_OBJ_BLEND;
+    gSprites[spriteId].x += 2;
+    gSprites[spriteId].y += 2;
+
+    return spriteId;
+}
+
+#undef sIsShadow
 
 // Track and then destroy Task_PokemonSummaryAnimateAfterDelay
 // Normally destroys itself but it can be interrupted before the animation starts
@@ -4270,6 +4310,7 @@ static void CreateHeldItemSprite(void)
 {
     u8 *spriteId = &sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM];
     u8 *spriteShadowId = &sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM_SHADOW];
+    u8 dropShadowPal = 0;
 
     FreeSpriteTilesByTag(TAG_HELD_ITEM);
     FreeSpritePaletteByTag(TAG_HELD_ITEM);
@@ -4280,14 +4321,16 @@ static void CreateHeldItemSprite(void)
     SetSpriteInvisibility(SPRITE_ARR_ID_ITEM, sMonSummaryScreen->summary.item == ITEM_NONE);
       
     // Shadow 
-    // FreeSpriteTilesByTag(TAG_HELD_ITEM_SHADOW);
-    // FreeSpritePaletteByTag(TAG_HELD_ITEM_SHADOW);
-    // *spriteShadowId = AddItemIconSprite(TAG_HELD_ITEM_SHADOW, TAG_HELD_ITEM_SHADOW, sMonSummaryScreen->summary.item); 
-    // gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM_SHADOW]].oam.priority = 2;
-    // // gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM_SHADOW]].oam.paletteNum = 11;
-    // gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM_SHADOW]].x = 80;
-    // gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM_SHADOW]].y = 134;    
-    // SetSpriteInvisibility(SPRITE_ARR_ID_ITEM_SHADOW, sMonSummaryScreen->summary.item == ITEM_NONE);
+    FreeSpriteTilesByTag(TAG_HELD_ITEM);
+    // Drop shadow palette will be freed when the Pokemon sprite is freed, so don't do it here.
+    //FreeSpritePaletteByTag(TAG_DROP_SHADOW);
+    *spriteShadowId = AddItemIconSprite(TAG_HELD_ITEM, TAG_DROP_SHADOW, sMonSummaryScreen->summary.item); 
+    gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM_SHADOW]].oam.priority = 2;
+    dropShadowPal = LoadSpritePalette(&sSpritePal_DropShadow);
+    gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM_SHADOW]].oam.paletteNum = dropShadowPal;
+    gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM_SHADOW]].x = 80;
+    gSprites[sMonSummaryScreen->spriteIds[SPRITE_ARR_ID_ITEM_SHADOW]].y = 134;    
+    SetSpriteInvisibility(SPRITE_ARR_ID_ITEM_SHADOW, sMonSummaryScreen->summary.item == ITEM_NONE);
 }
 
 static void SpriteCB_MoveSelector(struct Sprite *sprite)

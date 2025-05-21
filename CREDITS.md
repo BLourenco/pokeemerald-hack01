@@ -2,6 +2,7 @@
 
 ## Software/Tools Used
 
+- mGBA
 - VSCode
 - GIMP
 - Graphics Gale
