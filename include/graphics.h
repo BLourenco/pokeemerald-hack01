@@ -1988,6 +1988,7 @@ extern const u32 gNewSummaryPage_Header_Side_Tilemap[];
 extern const u32 gNewSummaryPage_Info_Tilemap[];
 extern const u32 gNewSummaryPage_InfoEgg_Tilemap[];
 extern const u32 gNewSummaryPage_Skills_Tilemap[];
+extern const u32 gNewSummaryPage_Skills_IVsEVs_Tilemap[];
 extern const u32 gNewSummaryPage_BattleMoves_Tilemap[];
 extern const u32 gNewSummaryPage_ContestMoves_Tilemap[];
 extern const u16 gNewSummaryScreen_MoveEffect_FifthSlot[];

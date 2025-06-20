@@ -1642,6 +1642,7 @@ const u32 gNewSummaryPage_Header_Side_Tilemap[] = INCBIN_U32("graphics/summary_s
 const u32 gNewSummaryPage_Info_Tilemap[] = INCBIN_U32("graphics/summary_screen_new/pss-info.bin.lz");
 const u32 gNewSummaryPage_InfoEgg_Tilemap[] = INCBIN_U32("graphics/summary_screen_new/pss-info-egg.bin.lz");
 const u32 gNewSummaryPage_Skills_Tilemap[] = INCBIN_U32("graphics/summary_screen_new/pss-stats.bin.lz");
+const u32 gNewSummaryPage_Skills_IVsEVs_Tilemap[] = INCBIN_U32("graphics/summary_screen_new/pss-stats-ivs-evs.bin.lz");
 const u32 gNewSummaryPage_BattleMoves_Tilemap[] = INCBIN_U32("graphics/summary_screen_new/pss-battle.bin.lz");
 const u32 gNewSummaryPage_ContestMoves_Tilemap[] = INCBIN_U32("graphics/summary_screen_new/pss-contest.bin.lz");
 const u16 gNewSummaryScreen_MoveEffect_Battle_Tilemap[] = INCBIN_U16("graphics/summary_screen_new/pss-battle-detail.bin");
